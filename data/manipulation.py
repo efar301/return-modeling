@@ -2,7 +2,7 @@ import yfinance as yf
 from datetime import datetime, timedelta
 import pandas as pd
 
-def pull_ticker(ticker: str, start: str | datetime = datetime.today() - datetime.timedelta(weeks=52 * 10), end: str | datetime = datetime.today()):
+def pull_ticker(ticker: str, start: str | datetime = datetime.today() - timedelta(weeks=52 * 10), end: str | datetime = datetime.today()):
 
     if (type(start) == str):
         start = datetime.strptime(start, "%m-%d-%Y")
@@ -12,8 +12,8 @@ def pull_ticker(ticker: str, start: str | datetime = datetime.today() - datetime
     data = yf.Ticker(ticker).history(start=start, end=end)
 
     # simple returns
-    data["daily_simple_return"] = round(data["Close"] / data["Close"].shift(1), 5)
-    data["weekly_simple_return"] = round(data["Close"] / data["Close"].shift(7), 5)
+    data["daily_simple_return"] = round((data["Close"] / data["Close"].shift(1)) - 1, 5)
+    data["weekly_simple_return"] = round((data["Close"] / data["Close"].shift(7)) - 1, 5)
 
     # moving averages
     data["ma5"] = round(data["Close"].rolling(window=5).mean(), 5)
@@ -22,7 +22,10 @@ def pull_ticker(ticker: str, start: str | datetime = datetime.today() - datetime
     filename = f"./csvs/{ticker}_historical_prices.csv"
     data.to_csv(filename)
 
+def pull_ticker_raw(ticker: str):
+    data = yf.Ticker(ticker).history(period="max")
+    data.to_csv(f"csvs/{ticker}_raw.csv")
 
 if __name__ == "__main__":
     # pass
-   pull_ticker("NVDA")
+   pull_ticker_raw("SPY")
